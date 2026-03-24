@@ -9,6 +9,8 @@ import Services from '@/components/Services';
 import Portfolio from '@/components/Portfolio';
 import Contact from '@/components/Contact';
 import Footer from '@/components/Footer';
+import Chatbot from '@/components/Chatbot';
+
 
 export default function Home() {
   const { scrollYProgress } = useScroll();
@@ -42,6 +44,8 @@ export default function Home() {
       </motion.div>
       
       <Footer />
+      <Chatbot />
+
     </main>
   );
 }
