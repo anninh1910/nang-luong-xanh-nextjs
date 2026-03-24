@@ -1,64 +1,59 @@
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
 
-// Khởi tạo OpenAI client với Base URL tùy chỉnh (override)
-const client = new OpenAI({
-  apiKey: process.env.CUSTOM_LLM_API_KEY!,
-  baseURL: process.env.CUSTOM_LLM_BASE_URL!, // trỏ về API server tùy chỉnh
+// OpenRouter configuration
+const openai = new OpenAI({
+  baseURL: process.env.OPENROUTER_BASE_URL || 'https://openrouter.ai/api/v1',
+  apiKey: process.env.OPENROUTER_API_KEY,
+  defaultHeaders: {
+    "HTTP-Referer": "https://example.com", // Optional, for OpenRouter analytics
+    "X-Title": "Agentic AI Portfolio Chatbot",
+  }
 });
 
-// System prompt được nạp từ dữ liệu kinh doanh
-const SYSTEM_PROMPT = `Bạn là trợ lý ảo thông minh của Năng Lượng Xanh Đà Nẵng.
-Nhiệm vụ của bạn là tư vấn khách hàng về các giải pháp năng lượng mặt trời một cách thân thiện, chuyên nghiệp và súc tích.
+/**
+ * AI Trợ lý độc quyền cho chuyên gia Nguyễn Văn Ninh.
+ * Định vị: Chuyên gia năng lượng mặt trời.
+ */
+const SYSTEM_PROMPT = `
+Bạn là AI trợ lý độc quyền cho chuyên gia Nguyễn Văn Ninh - Chuyên gia năng lượng mặt trời.
 
-THÔNG TIN THƯƠNG HIỆU:
-- Tên chuyên gia: Nguyễn Ninh
-- Định vị thương hiệu: Chuyên gia năng lượng mặt trời với 6 năm kinh nghiệm
-- Địa chỉ: 124 Hồ Quý Ly, Phường Thanh Khê, TP. Đà Nẵng
+KNOWLEDGE BASE:
+- Tên chuyên gia: Nguyễn Văn Ninh
+- Định vị: Chuyên gia năng lượng mặt trời
+- Giải pháp: Tư vấn, thiết kế, thi công điện mặt trời
+- Sản phẩm: Hệ thống điện mặt trời áp mái, Hệ thống điện mặt trời hòa lưới, Hệ thống điện mặt trời độc lập, Hệ thống điện mặt trời lai
+- Liên hệ: Zalo 0934458025
 
-DỊCH VỤ CUNG CẤP:
-- Tư vấn, khảo sát, thiết kế, lắp đặt hệ thống điện năng lượng mặt trời
-- Bảo trì định kỳ 6 tháng/lần
-- Cam kết hiệu suất panel lên đến 25 năm
-
-SẢN PHẨM NỔI BẬT:
-1. Hệ thống điện NLMT Hòa lưới có lưu trữ Hybrid
-2. Hệ thống điện NLMT Hòa lưới bám tải
-3. Hệ thống điện NLMT Độc lập (Off-grid)
-
-THƯƠNG HIỆU THIẾT BỊ: Huawei, Growatt, Deye (thiết bị Nhật Bản / Đức)
-
-LIÊN HỆ TƯ VẤN: Zalo/SĐT: 0934 458 025 | Email: ninh.solardn@gmail.com
-
-HƯỚNG DẪN:
-- Trả lời bằng tiếng Việt, ngắn gọn và thực tế
-- Luôn kết thúc bằng lời mời khách liên hệ khi câu hỏi liên quan đến báo giá hoặc lắp đặt
-- Nếu không biết câu trả lời, hãy hướng khách liên hệ trực tiếp`;
+QUY TẮC PHẢN HỒI:
+1. Bạn chỉ được trả lời dựa trên Knowledge Base trên một cách chuyên nghiệp.
+2. Vai trò của bạn là AI trợ lý độc quyền của anh Ninh, luôn súc tích và nhiệt tình.
+3. Luôn:
+   - Chào hỏi thân thiện.
+   - Trình bày bằng Markdown đẹp (liệt kê danh sách, nhấn mạnh các thông số quan trọng).
+   - Kết thúc bằng lời mời liên hệ Zalo 0934458025 để nhận báo giá hoặc khảo sát.
+4. Nếu câu hỏi ngoài phạm vi điện mặt trời, hãy hướng khách liên hệ trực tiếp cho anh Ninh.
+`;
 
 export async function POST(req: NextRequest) {
   try {
     const { messages } = await req.json();
 
-    if (!messages || !Array.isArray(messages)) {
-      return NextResponse.json({ error: 'Invalid request: messages array required' }, { status: 400 });
-    }
-
-    const completion = await client.chat.completions.create({
-      model: process.env.CUSTOM_LLM_MODEL!, // 'ces-chatbot-gpt-5.4'
+    const response = await openai.chat.completions.create({
+      model: process.env.OPENROUTER_MODEL || "z-ai/glm-4.5-air:free",
       messages: [
-        { role: 'system', content: SYSTEM_PROMPT },
-        ...messages,
+        { role: "system", content: SYSTEM_PROMPT },
+        ...messages
       ],
       temperature: 0.7,
-      max_tokens: 500,
+      max_tokens: 1000,
     });
 
-    const reply = completion.choices[0]?.message?.content ?? 'Xin lỗi, tôi không thể phản hồi lúc này.';
+    const aiResponse = response.choices[0]?.message?.content || "Tôi không biết trả lời thế nào cho trường hợp này.";
 
-    return NextResponse.json({ reply });
-  } catch (error: unknown) {
-    console.error('[Chatbot API Error]', error);
-    const message = error instanceof Error ? error.message : 'Internal Server Error';
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json({ reply: aiResponse });
+  } catch (error) {
+    console.error("OpenRouter Error:", error);
+    return NextResponse.json({ error: "Lỗi kết nối API. Vui lòng thử lại sau." }, { status: 500 });
   }
 }
