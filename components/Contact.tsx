@@ -60,7 +60,7 @@ const Contact = () => {
                                 <label className="font-label text-xs uppercase tracking-widest text-slate-500 font-bold ml-1">Họ và Tên</label>
                                 <input 
                                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-6 py-4 text-slate-900 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all placeholder:text-slate-400" 
-                                    placeholder="Nguyễn Văn A" 
+                                    placeholder="Nguyễn Văn Ninh" 
                                     type="text" 
                                 />
                             </div>

@@ -45,7 +45,7 @@ const Chatbot = () => {
     setMessages([
       {
         role: 'assistant',
-        content: 'Chào bạn! Tôi là trợ lý AI của **Nguyễn Văn A**. Tôi có thể giúp gì cho bạn về các giải pháp **AGENTIC AI** và khóa học **K89** không? 😊',
+        content: 'Chào bạn! Tôi là trợ lý AI của **Nguyễn Văn Ninh**. Tôi có thể giúp gì cho bạn về giải pháp **Điện Năng Lượng Mặt Trời** tại Đà Nẵng không? 🌞',
       },
     ]);
     
@@ -131,7 +131,7 @@ const Chatbot = () => {
                   <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-400 border-2 border-indigo-700 rounded-full animate-pulse shadow-sm"></span>
                 </div>
                 <div>
-                  <h4 className="font-bold text-sm tracking-tight">AI Trợ lý Nguyễn Văn A</h4>
+                  <h4 className="font-bold text-sm tracking-tight">AI Trợ lý Nguyễn Văn Ninh</h4>
                   <p className="text-[10px] text-white/70 uppercase font-black tracking-widest mt-0.5 flex items-center gap-1.5">
                     Trực tuyến
                   </p>
