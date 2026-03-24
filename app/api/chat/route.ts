@@ -1,16 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
 
-// OpenRouter configuration
-const openai = new OpenAI({
-  baseURL: process.env.OPENROUTER_BASE_URL || 'https://openrouter.ai/api/v1',
-  apiKey: process.env.OPENROUTER_API_KEY,
-  defaultHeaders: {
-    "HTTP-Referer": "https://example.com", // Optional, for OpenRouter analytics
-    "X-Title": "Agentic AI Portfolio Chatbot",
-  }
-});
-
 /**
  * AI Trợ lý độc quyền cho chuyên gia Nguyễn Văn Ninh.
  * Định vị: Chuyên gia năng lượng mặt trời.
@@ -35,9 +25,20 @@ QUY TẮC PHẢN HỒI:
 4. Nếu câu hỏi ngoài phạm vi điện mặt trời, hãy hướng khách liên hệ trực tiếp cho anh Ninh.
 `;
 
+// Move client initialization to avoid build-time errors when ENV is missing
 export async function POST(req: NextRequest) {
   try {
     const { messages } = await req.json();
+
+    // Initialize inside the handler to prevent crashed during build phase
+    const openai = new OpenAI({
+      baseURL: process.env.OPENROUTER_BASE_URL || 'https://openrouter.ai/api/v1',
+      apiKey: process.env.OPENROUTER_API_KEY || 'sk-or-dummy-key-for-build', // Fallback for build phase
+      defaultHeaders: {
+        "HTTP-Referer": "https://example.com",
+        "X-Title": "Agentic AI Portfolio Chatbot",
+      }
+    });
 
     const response = await openai.chat.completions.create({
       model: process.env.OPENROUTER_MODEL || "z-ai/glm-4.5-air:free",
