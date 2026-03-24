@@ -49,7 +49,8 @@ const Portfolio = () => {
                         </motion.h2>
                     </div>
                     <motion.p 
-                        initial={{ opacity: 0, opacity: 1 }}
+                        initial={{ opacity: 0 }}
+                        whileInView={{ opacity: 1 }}
                         className="text-slate-500 max-w-sm"
                     >
                         Hơn 200+ hệ thống đã được lắp đặt thành công trên khắp dải đất miền Trung.
