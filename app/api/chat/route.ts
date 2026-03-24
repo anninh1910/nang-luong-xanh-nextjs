@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
 
+// Fixed initialization to build-time safe
 /**
  * AI Trợ lý độc quyền cho chuyên gia Nguyễn Văn Ninh.
  * Định vị: Chuyên gia năng lượng mặt trời.
