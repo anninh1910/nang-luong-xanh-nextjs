@@ -15,6 +15,87 @@ type Message = {
   content: string;
 };
 
+// ============================================================
+// LEAD CAPTURE — Bóc tách dữ liệu khách hàng từ AI response
+// ============================================================
+
+// URL Google Apps Script Web App (lấy từ .env.local)
+const GOOGLE_SCRIPT_URL = process.env.NEXT_PUBLIC_GOOGLE_SCRIPT_URL || '';
+
+// Session ID duy nhất cho mỗi phiên tải trang
+const AI_CHAT_SESSION_ID = 'session_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7);
+
+// Regex pattern cho tag ẩn LEAD_DATA
+const LEAD_DATA_PATTERN = /\|\|LEAD_DATA:\s*(\{.*?\})\s*\|\|/;
+
+/**
+ * Gửi dữ liệu Lead lên Google Apps Script → Google Sheets
+ */
+async function sendLeadToGoogleSheets(leadData: { name?: string; phone?: string; email?: string }, chatHistoryText: string) {
+  if (!GOOGLE_SCRIPT_URL) {
+    console.warn('⚠️ Chưa cấu hình GOOGLE_SCRIPT_URL trong .env.local');
+    return;
+  }
+  try {
+    await fetch(GOOGLE_SCRIPT_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: leadData.name || '',
+        phone: leadData.phone || '',
+        email: leadData.email || '',
+        source: window.location.href,
+        sessionId: AI_CHAT_SESSION_ID,
+        chatHistory: chatHistoryText,
+        timestamp: new Date().toLocaleString('vi-VN'),
+      }),
+    });
+    console.log('📤 Đã đồng bộ dữ liệu vào Google Sheets!');
+  } catch (err) {
+    console.warn('⚠️ Không gửi được dữ liệu lead:', err);
+  }
+}
+
+/**
+ * Xử lý response từ AI:
+ * 1. Kiểm tra có tag ||LEAD_DATA:...|| không
+ * 2. Nếu có → Parse JSON → Gửi lên Google Sheets kèm lịch sử chat
+ * 3. Xóa tag khỏi câu trả lời → Trả về text sạch
+ */
+function processAIResponse(aiResponse: string, chatHistory: Message[]): string {
+  // Xây dựng text lịch sử chat cho Google Sheets
+  let formattedHistory = '';
+  if (chatHistory && chatHistory.length > 0) {
+    formattedHistory = chatHistory
+      .map((msg) => {
+        const role = msg.role === 'user' ? 'Khách' : 'AI';
+        const content = msg.content.replace(LEAD_DATA_PATTERN, '').trim();
+        return `${role}: ${content}`;
+      })
+      .join('\n\n');
+  }
+
+  if (aiResponse.includes('||LEAD_DATA:')) {
+    const match = aiResponse.match(LEAD_DATA_PATTERN);
+    if (match && match[1]) {
+      try {
+        const leadData = JSON.parse(match[1]);
+        console.log('✅ Dữ liệu khách hàng bóc được:', leadData);
+
+        if (leadData.name || leadData.phone || leadData.email) {
+          sendLeadToGoogleSheets(leadData, formattedHistory);
+        }
+      } catch (error) {
+        console.error('❌ Lỗi parse JSON từ AI:', error);
+      }
+    }
+    // Xóa tag ẩn khỏi câu trả lời
+    aiResponse = aiResponse.replace(LEAD_DATA_PATTERN, '').trim();
+  }
+  return aiResponse;
+}
+
 const Chatbot = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
@@ -77,9 +158,13 @@ const Chatbot = () => {
 
       const data = await response.json();
       
+      // Bóc tách lead data trước khi hiển thị
+      const rawReply = data.reply || 'Dạ, tôi chưa nhận được phản hồi. Hãy thử lại ạ.';
+      const cleanReply = processAIResponse(rawReply, currentMessages);
+      
       setMessages((prev) => [
         ...prev,
-        { role: 'assistant', content: data.reply || 'Dạ, tôi chưa nhận được phản hồi. Hãy thử lại ạ.' },
+        { role: 'assistant', content: cleanReply },
       ]);
     } catch (error) {
       console.error("Chat Error:", error);
