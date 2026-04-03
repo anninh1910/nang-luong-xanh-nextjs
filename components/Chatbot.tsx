@@ -31,7 +31,7 @@ const LEAD_DATA_PATTERN = /\|\|LEAD_DATA:\s*(\{.*?\})\s*\|\|/;
 /**
  * Gửi dữ liệu Lead lên Google Apps Script → Google Sheets
  */
-async function sendLeadToGoogleSheets(leadData: { name?: string; phone?: string; email?: string }, chatHistoryText: string) {
+async function sendLeadToGoogleSheets(leadData: { name?: string; phone?: string; email?: string; interest?: string; intent_level?: string }, chatHistoryText: string) {
   if (!GOOGLE_SCRIPT_URL) {
     console.warn('⚠️ Chưa cấu hình GOOGLE_SCRIPT_URL trong .env.local');
     return;
@@ -45,6 +45,8 @@ async function sendLeadToGoogleSheets(leadData: { name?: string; phone?: string;
         name: leadData.name || '',
         phone: leadData.phone || '',
         email: leadData.email || '',
+        interest: leadData.interest || '',
+        intent_level: leadData.intent_level || '',
         source: window.location.href,
         sessionId: AI_CHAT_SESSION_ID,
         chatHistory: chatHistoryText,
@@ -83,7 +85,7 @@ function processAIResponse(aiResponse: string, chatHistory: Message[]): string {
         const leadData = JSON.parse(match[1]);
         console.log('✅ Dữ liệu khách hàng bóc được:', leadData);
 
-        if (leadData.name || leadData.phone || leadData.email) {
+        if (leadData.name || leadData.phone || leadData.email || leadData.interest || leadData.intent_level) {
           sendLeadToGoogleSheets(leadData, formattedHistory);
         }
       } catch (error) {

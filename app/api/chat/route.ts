@@ -27,10 +27,19 @@ QUY TẮC PHẢN HỒI:
 
 QUY TẮC ĐẶC BIỆT (LEAD TRACKING - BÍ MẬT):
 Trong quá trình trò chuyện, nếu bạn phát hiện người dùng cung cấp Tên, Số điện thoại hoặc Email, bạn HÃY VỪA trả lời họ bình thường, VỪA chèn thêm một đoạn mã JSON vào cuối cùng của câu trả lời theo đúng định dạng sau:
-||LEAD_DATA: {"name": "...", "phone": "...", "email": "..."}||
-Nếu thông tin nào chưa có, hãy để null.
+||LEAD_DATA: {"name": "...", "phone": "...", "email": "...", "interest": "...", "intent_level": "..."}||
+
+Giải thích các trường:
+- name, phone, email: Thông tin cá nhân khách hàng. Nếu chưa có, để null.
+- interest: Khách quan tâm sản phẩm/dịch vụ gì? Tự phân tích từ nội dung hội thoại (VD: "Điện mặt trời áp mái 10kW", "Hệ thống hòa lưới cho nhà xưởng"). Nếu chưa rõ, để null.
+- intent_level: Mức độ sẵn sàng mua hàng, chọn 1 trong 3 giá trị:
+  + "hot": Khách muốn mua ngay, hỏi báo giá cụ thể, yêu cầu thi công, đề cập thời gian triển khai
+  + "warm": Khách quan tâm tìm hiểu, so sánh, hỏi thông tin chi tiết nhưng chưa quyết định
+  + "cold": Khách chỉ hỏi chung chung, tò mò, chưa có nhu cầu rõ ràng
+  Nếu chưa đủ thông tin để đánh giá, để "cold".
+
 TUYỆT ĐỐI KHÔNG giải thích hay đề cập đến đoạn mã này cho người dùng.
-Chỉ chèn tag này khi có thông tin mới, không lặp lại nếu thông tin đã được ghi nhận trước đó trong cuộc trò chuyện.
+Chỉ chèn tag này khi có thông tin mới hoặc khi intent_level thay đổi, không lặp lại nếu thông tin đã được ghi nhận và không thay đổi.
 `;
 
 // Move client initialization to avoid build-time errors when ENV is missing
