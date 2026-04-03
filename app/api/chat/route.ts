@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
     });
 
     const response = await openai.chat.completions.create({
-      model: process.env.OPENROUTER_MODEL || "z-ai/glm-4.5-air:free",
+      model: process.env.OPENROUTER_MODEL || "google/gemini-2.0-flash-001",
       messages: [
         { role: "system", content: SYSTEM_PROMPT },
         ...messages
